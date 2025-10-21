@@ -1,5 +1,6 @@
 package service;
 
+import exceptions.AlreadyExistingDirectory;
 import model.Directory;
 
 import java.util.List;
@@ -15,14 +16,14 @@ public interface DirectoryService {
      *
      * @throws exceptions.AlreadyExistingDirectory if an I/O error occurs
      */
-    Directory createDirectory(String path);
+    Directory createDirectory(String path) throws AlreadyExistingDirectory;
 
     /**
      * Saves the specified directory in the memory
      *
      *  @param directory the Directory object to be saved. Must not be null
      */
-    void saveDirectory(Directory directory);
+    void saveDirectory(Directory directory) throws AlreadyExistingDirectory;
 
     /**
      * Deletes the specified directory and all its contents from the file system
@@ -46,4 +47,11 @@ public interface DirectoryService {
      * @return a List of Directory objects representing all directories; the list may be empty if no directories are present
      */
     List<Directory> getAllDirectories();
+
+    /**
+     * Finds and returns a Directory object based on the provided directory path
+     * @param dirPath the path of the directory to be retrieved
+     * @return the Directory object with the specified path, or null if no such directory exists
+     */
+    Directory getDirectoryByPath(String dirPath);
 }

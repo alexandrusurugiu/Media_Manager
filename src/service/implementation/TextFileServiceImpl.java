@@ -4,6 +4,7 @@ import exceptions.FilesLoadingException;
 import exceptions.FilesSavingException;
 import model.Directory;
 import model.MediaFile;
+import service.DirectoryService;
 import service.MediaFileService;
 import service.TextFileService;
 
@@ -20,12 +21,16 @@ public class TextFileServiceImpl implements TextFileService {
 
     private static final String PATHS_FILE = "src//resources/paths.txt";
 
-    private List<Directory> directories = new ArrayList<>();
+    private List<Directory> directories;
 
     private MediaFileService mediaFileService;
 
-    public TextFileServiceImpl(MediaFileServiceImpl mediaFileServiceImpl) {
-        this.mediaFileService = mediaFileServiceImpl;
+    private DirectoryService directoryService;
+
+    public TextFileServiceImpl(DirectoryService directoryService, MediaFileService mediaFileService) {
+        this.directoryService = directoryService;
+        this.mediaFileService = mediaFileService;
+        this.directories = directoryService.getAllDirectories();
     }
 
     public List<Directory> getDirectories() {
@@ -37,6 +42,7 @@ public class TextFileServiceImpl implements TextFileService {
     }
 
     public List<String> loadFilesFromTextFile() throws FilesLoadingException {
+
         List<String> pathLinesToBeDisplayed = new ArrayList<>();
         Map<String, Directory> directoryMap = new HashMap<>();
 
@@ -50,51 +56,41 @@ public class TextFileServiceImpl implements TextFileService {
                 }
 
                 pathLinesToBeDisplayed.add(line);
+
+                Directory parentDirectory = directoryService.createDirectory(line);
+
                 String[] pathComponents = line.split("/");
-
-                if (pathComponents.length == 0) {
-                    continue;
-                }
-
                 StringBuilder currentPath = new StringBuilder();
-                List<Directory> directoriesInCurrentPath = new ArrayList<>();
-
                 for (int i = 0; i < pathComponents.length - 1; i++) {
                     String component = pathComponents[i];
                     if (component == null || component.isEmpty()) {
                         continue;
                     }
 
-                    currentPath.append(component).append('/');
+                    currentPath.append(component).append("/");
                     String dirPath = currentPath.toString();
 
-                    Directory directory = directoryMap.get(dirPath);
-                    if (directory == null) {
-                        directory = new Directory();
-                        directory.setName(component);
-                        directory.setPath(dirPath);
-                        directoryMap.put(dirPath, directory);
-                        directories.add(directory);
+                    Directory directory = directoryService.getDirectoryByPath(dirPath);
+                    if (directory != null) {
+                        directoryMap.putIfAbsent(dirPath, directory);
                     }
-                    directoriesInCurrentPath.add(directory);
                 }
 
                 MediaFile mediaFile = mediaFileService.createMediaFile(line);
-                if (mediaFile != null && mediaFile.getName() != null) {
-                    if (!directoriesInCurrentPath.isEmpty()) {
-                        Directory parentDirectory = directoriesInCurrentPath.get(directoriesInCurrentPath.size() - 1);
-                        parentDirectory.addMediaFile(mediaFile);
-                    }
+                if (mediaFile != null && mediaFile.getName() != null && parentDirectory != null) {
+                    parentDirectory.addMediaFile(mediaFile);
                 }
             }
-        } catch (IOException e) {
+        } catch (IOException ex) {
             throw new FilesLoadingException("Nu s-au putut incarca path-urile din fisierul text!");
         }
+
         return pathLinesToBeDisplayed;
     }
 
     @Override
     public void saveFilesToTextFile(List<MediaFile> mediaFiles) throws FilesSavingException {
+
         List<String> paths = new ArrayList<>();
         for (MediaFile mediaFile : mediaFiles) {
             StringBuilder mediaFilesPaths = new StringBuilder();

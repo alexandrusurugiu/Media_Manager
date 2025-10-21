@@ -46,9 +46,10 @@ public class MediaFileServiceImpl implements MediaFileService {
 
     @Override
     public void saveMediaFile(MediaFile mediaFile) {
+
         for (MediaFile currentMediaFile : mediaFileList) {
             if (mediaFile.getName().equals(currentMediaFile.getName()) && mediaFile.getFileType().equals(currentMediaFile.getFileType())) {
-                throw new AlreadyExistingFile("Fisierul " + mediaFile.getName() + " cu extensia " + mediaFile.getFileType() + " deja exista in path-ul " + mediaFile.getPath());
+                throw new AlreadyExistingFile("Fisierul " + mediaFile.getName() + " cu extensia " + mediaFile.getFileType() + " exista deja in path-ul " + mediaFile.getPath());
             }
         }
 
@@ -57,11 +58,13 @@ public class MediaFileServiceImpl implements MediaFileService {
 
     @Override
     public void deleteMediaFile(MediaFile mediaFile) {
+
         mediaFileList.remove(mediaFile);
     }
 
     @Override
     public MediaFile getMediaFile(String fileName) {
+
         for (MediaFile mediaFile : mediaFileList) {
             if (mediaFile.getName().equals(fileName)) {
                 return mediaFile;
@@ -73,11 +76,13 @@ public class MediaFileServiceImpl implements MediaFileService {
 
     @Override
     public List<MediaFile> getAllMediaFiles() {
+
         return mediaFileList;
     }
 
     @Override
     public boolean isMediaFile(String filename) {
+
         if (filename == null || !filename.contains(".")) {
             return false;
         }
@@ -88,12 +93,14 @@ public class MediaFileServiceImpl implements MediaFileService {
 
     @Override
     public String getFileNameWithoutExtension(String filename) {
+
         int dotIndex = filename.lastIndexOf('.');
         return dotIndex > 0 ? filename.substring(0, dotIndex) : filename;
     }
 
     @Override
     public String getFileExtension(String filename) {
+
         int dotIndex = filename.lastIndexOf('.');
         return dotIndex > 0 ? filename.substring(dotIndex + 1) : "";
     }
