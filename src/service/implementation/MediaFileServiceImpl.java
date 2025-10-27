@@ -1,6 +1,6 @@
 package service.implementation;
 
-import exceptions.AlreadyExistingFile;
+import exception.AlreadyExistingFile;
 import model.MediaFile;
 import service.MediaFileService;
 
@@ -63,10 +63,10 @@ public class MediaFileServiceImpl implements MediaFileService {
     }
 
     @Override
-    public MediaFile getMediaFile(String fileName) {
+    public MediaFile getMediaFileByPath(String path) {
 
         for (MediaFile mediaFile : mediaFileList) {
-            if (mediaFile.getName().equals(fileName)) {
+            if (mediaFile.getPath().equals(path)) {
                 return mediaFile;
             }
         }

@@ -1,6 +1,6 @@
 package service.implementation;
 
-import exceptions.AlreadyExistingDirectory;
+import exception.AlreadyExistingDirectory;
 import model.Directory;
 import service.DirectoryService;
 import service.MediaFileService;
@@ -104,7 +104,7 @@ public class DirectoryServiceImpl implements DirectoryService {
     }
 
     @Override
-    public Directory getMediaFile(String directoryName) {
+    public Directory getDirectory(String directoryName) {
 
         for (Directory directory : directories) {
             if (directory.getName().equals(directoryName)) {

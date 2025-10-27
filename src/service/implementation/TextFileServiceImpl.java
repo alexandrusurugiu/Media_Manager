@@ -1,7 +1,7 @@
 package service.implementation;
 
-import exceptions.FilesLoadingException;
-import exceptions.FilesSavingException;
+import exception.FilesLoadingException;
+import exception.FilesSavingException;
 import model.Directory;
 import model.MediaFile;
 import service.DirectoryService;
@@ -19,7 +19,7 @@ import java.util.Map;
 
 public class TextFileServiceImpl implements TextFileService {
 
-    private static final String PATHS_FILE = "src//resources/paths.txt";
+    private static final String PATHS_FILE = "src//resource/paths.txt";
 
     private List<Directory> directories;
 
@@ -89,19 +89,9 @@ public class TextFileServiceImpl implements TextFileService {
     }
 
     @Override
-    public void saveFilesToTextFile(List<MediaFile> mediaFiles) throws FilesSavingException {
-
-        List<String> paths = new ArrayList<>();
-        for (MediaFile mediaFile : mediaFiles) {
-            StringBuilder mediaFilesPaths = new StringBuilder();
-            String path = mediaFile.getPath() + mediaFile.getName() + '.' + mediaFile.getFileType();
-            mediaFilesPaths.append(path);
-
-            paths.add(mediaFilesPaths.toString());
-        }
-
+    public void saveFilesToTextFile(List<String> pathsToBeSaved) throws FilesSavingException {
         try (FileWriter fileWriter = new FileWriter(PATHS_FILE, false)) {
-            for (String path : paths) {
+            for (String path : pathsToBeSaved) {
                 fileWriter.write(path + System.lineSeparator());
             }
         } catch (IOException e) {
