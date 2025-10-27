@@ -1,5 +1,6 @@
 D:/ProgramFiles/RockstarGames/Rockey.mp4
-D:/ProgramFilesX86/CommonFiles/minimDoi.mp3
-D:/ProgramFilesX86/pozaProfil.png
-C:/Users/Public/Pictures/photo.jpg
-C:/Root/Music/Rock/Album/song.mp3
+D:/ProgramFilesX86/CommonFiles/Alex_Velea.mp3
+C:/Users/Public/Pictures/Photo.jpeg
+C:/Root/Music/Rock/Album/Song.mp3
+D:/ProgramFiles/Nvidia/Drivers/OldDrivers/GRD/365.jpg
+C:/Users/Alex/Absolvire/grup.jpg

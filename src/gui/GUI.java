@@ -123,6 +123,23 @@ public class GUI {
         setupRealTimeUpdatesForPathsTextArea();
         saveFilesToTextFileWhenExitingFrame();
         deleteFile();
+        addFile();
+    }
+
+    private void addFile() {
+        addButton.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (selectedLineIndex == -1) {
+                    String pathToBeAdded = processingTextArea.getText().trim();
+                    pathsList.add(pathToBeAdded);
+                    refreshPathsTextArea();
+                }
+                else {
+                    updateSelectedPath();
+                }
+            }
+        });
     }
 
     private void deleteFile() {
@@ -142,7 +159,6 @@ public class GUI {
             @Override
             public void focusLost(FocusEvent evt) {
                 updateSelectedPath();
-
             }
         });
     }
@@ -198,6 +214,14 @@ public class GUI {
                     int line = textArea.getLineOfOffset(offset);
                     int startOffset = textArea.getLineStartOffset(line);
                     int endOffset = textArea.getLineEndOffset(line);
+
+                    int totalLength = textArea.getText().length();
+                    if (offset >= totalLength) {
+                        selectedLineIndex = -1;
+                        processingTextArea.setText("");
+                        return;
+                    }
+
                     String lineText = textArea.getText(startOffset, endOffset - startOffset).trim();
                     processingTextArea.setText(lineText);
                     selectedLineIndex = line;
