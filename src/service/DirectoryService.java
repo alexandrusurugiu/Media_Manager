@@ -1,6 +1,6 @@
 package service;
 
-import exceptions.AlreadyExistingDirectory;
+import exception.AlreadyExistingDirectory;
 import model.Directory;
 
 import java.util.List;
@@ -14,9 +14,18 @@ public interface DirectoryService {
      *
      * @return a Directory object representing the newly created directory
      *
-     * @throws exceptions.AlreadyExistingDirectory if an I/O error occurs
+     * @throws exception.AlreadyExistingDirectory if an I/O error occurs
      */
     Directory createDirectory(String path) throws AlreadyExistingDirectory;
+
+    /**
+     * Retrieves a Directory object by its path
+     *
+     * @param path the string representing the path of the directory to be retrieved
+     *
+     * @return the Directory object with the specified path, or null if no such directory exists
+     */
+    Directory getDirectoryByPath(String path);
 
     /**
      * Saves the specified directory in the memory
@@ -39,7 +48,7 @@ public interface DirectoryService {
      *
      * @return the Directory object with the specified name, or null if no such directory exists
      */
-    Directory getMediaFile(String directoryName);
+    Directory getDirectory(String directoryName);
 
     /**
      * Retrieves a list of all directories currently stored in memory
@@ -47,11 +56,4 @@ public interface DirectoryService {
      * @return a List of Directory objects representing all directories; the list may be empty if no directories are present
      */
     List<Directory> getAllDirectories();
-
-    /**
-     * Finds and returns a Directory object based on the provided directory path
-     * @param dirPath the path of the directory to be retrieved
-     * @return the Directory object with the specified path, or null if no such directory exists
-     */
-    Directory getDirectoryByPath(String dirPath);
 }

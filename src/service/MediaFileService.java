@@ -30,13 +30,13 @@ public interface MediaFileService {
     void deleteMediaFile(MediaFile mediaFile);
 
     /**
-     * Searches a {@link model.MediaFile} object based on the name of the file provided as the parameter
+     * Searches a {@link model.MediaFile} object based on the path of the file provided as the parameter
      *
-     * @param fileName {@link String} variable which counts as the name of the wanted object
+     * @param path {@link String} variable which counts as the path of the wanted object
      *
-     * @return the {@link model.MediaFile} objects that has the name equal with the one given as parameter
+     * @return the {@link model.MediaFile} objects that has the path equal with the one given as parameter
      */
-    MediaFile getMediaFile(String fileName);
+    MediaFile getMediaFileByPath(String path);
 
     /**
      * Provides a list with all the existing media files in the memory, at that specific moment

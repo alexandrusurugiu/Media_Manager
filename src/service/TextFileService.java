@@ -1,9 +1,8 @@
 package service;
 
-import exceptions.FilesLoadingException;
-import exceptions.FilesSavingException;
-import model.MediaFile;
-
+import exception.FilesLoadingException;
+import exception.FilesSavingException;
+import java.io.IOException;
 import java.util.List;
 
 public interface TextFileService {
@@ -15,14 +14,14 @@ public interface TextFileService {
      *
      * @throws FilesLoadingException if an I/O error occurs during reading the file
      */
-    List<String> loadFilesFromTextFile() throws FilesLoadingException;
+    List<String> loadFilesFromTextFile() throws IOException;
 
     /**
-     * Saves the provided list of media files to the text file
+     * Saves the provided list of files to the text file
      *
-     * @param mediaFiles the list of MediaFile objects to be saved to the text file
+     * @param pathsToBeSaved the list of files to be saved to the text file
      *
      * @throws FilesSavingException if any I/O error occurs during the file writing process
      */
-    void saveFilesToTextFile(List<MediaFile> mediaFiles) throws FilesSavingException;
+    void saveFilesToTextFile(List<String> pathsToBeSaved) throws FilesSavingException;
 }
