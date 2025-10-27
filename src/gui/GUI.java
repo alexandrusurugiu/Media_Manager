@@ -122,6 +122,18 @@ public class GUI {
         sendFileToEditingTab();
         setupRealTimeUpdatesForPathsTextArea();
         saveFilesToTextFileWhenExitingFrame();
+        deleteFile();
+    }
+
+    private void deleteFile() {
+
+        deleteButton.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                pathsList.remove(selectedLineIndex);
+                refreshPathsTextArea();
+            }
+        });
     }
 
     private void setupRealTimeUpdatesForPathsTextArea() {
@@ -203,13 +215,6 @@ public class GUI {
             try {
                 List<String> paths = textFileService.loadFilesFromTextFile();
                 setPaths(paths);
-
-                mediaFiles.forEach(System.out::println);
-
-                System.out.println("\n-----------------------------------\n");
-
-                directories.forEach(System.out::println);
-
             } catch (IOException ex) {
                 throw new RuntimeException(ex.getMessage());
             }
