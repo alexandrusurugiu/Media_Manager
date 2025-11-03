@@ -3,23 +3,14 @@ package gui;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.event.FocusAdapter;
-import java.awt.event.FocusEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
+import java.awt.event.*;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JSplitPane;
-import javax.swing.JTextArea;
-import javax.swing.SwingUtilities;
-import javax.swing.WindowConstants;
+import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+
 import model.Directory;
 import model.MediaFile;
 import service.DirectoryService;
@@ -120,20 +111,24 @@ public class GUI {
 
         importDataFromTextFile();
         sendFileToEditingTab();
-        setupRealTimeUpdatesForPathsTextArea();
+        setupAutoCommitForProcessingTextArea();
         saveFilesToTextFileWhenExitingFrame();
         deleteFile();
         addFile();
     }
 
     private void addFile() {
+
         addButton.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
                 if (selectedLineIndex == -1) {
                     String pathToBeAdded = processingTextArea.getText().trim();
-                    pathsList.add(pathToBeAdded);
-                    refreshPathsTextArea();
+                    if (!pathToBeAdded.isEmpty()) {
+                        pathsList.add(pathToBeAdded);
+                        refreshPathsTextArea();
+                        rebuildModelsFromPaths();
+                    }
                 }
                 else {
                     updateSelectedPath();
@@ -147,18 +142,13 @@ public class GUI {
         deleteButton.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                pathsList.remove(selectedLineIndex);
-                refreshPathsTextArea();
-            }
-        });
-    }
-
-    private void setupRealTimeUpdatesForPathsTextArea() {
-
-        processingTextArea.addFocusListener(new FocusAdapter() {
-            @Override
-            public void focusLost(FocusEvent evt) {
-                updateSelectedPath();
+                if (selectedLineIndex >= 0 && selectedLineIndex < pathsList.size()) {
+                    pathsList.remove(selectedLineIndex);
+                    selectedLineIndex = -1;
+                    processingTextArea.setText("");
+                    refreshPathsTextArea();
+                    rebuildModelsFromPaths();
+                }
             }
         });
     }
@@ -167,9 +157,11 @@ public class GUI {
 
         if (selectedLineIndex >= 0 && selectedLineIndex < pathsList.size()) {
             String updatedText = processingTextArea.getText().trim();
-            if (!updatedText.equals(pathsList.get(selectedLineIndex))) {
+            String oldText = pathsList.get(selectedLineIndex);
+            if (!updatedText.equals(oldText)) {
                 pathsList.set(selectedLineIndex, updatedText);
                 refreshPathsTextArea();
+                rebuildModelsFromPaths();
             }
         }
     }
@@ -211,23 +203,78 @@ public class GUI {
                 JTextArea textArea = (JTextArea) e.getSource();
                 int offset = textArea.viewToModel(e.getPoint());
                 try {
-                    int line = textArea.getLineOfOffset(offset);
-                    int startOffset = textArea.getLineStartOffset(line);
-                    int endOffset = textArea.getLineEndOffset(line);
-
                     int totalLength = textArea.getText().length();
+                    // clicked after text content -> unselect
                     if (offset >= totalLength) {
                         selectedLineIndex = -1;
                         processingTextArea.setText("");
                         return;
                     }
 
+                    int line = textArea.getLineOfOffset(Math.max(0, Math.min(offset, Math.max(totalLength - 1, 0))));
+                    if (line < 0 || line >= pathsList.size()) {
+                        selectedLineIndex = -1;
+                        processingTextArea.setText("");
+                        return;
+                    }
+
+                    int startOffset = textArea.getLineStartOffset(line);
+                    int endOffset = textArea.getLineEndOffset(line);
                     String lineText = textArea.getText(startOffset, endOffset - startOffset).trim();
                     processingTextArea.setText(lineText);
                     selectedLineIndex = line;
                 } catch (Exception ex) {
                     ex.printStackTrace();
                     selectedLineIndex = -1;
+                }
+            }
+        });
+    }
+
+    private void setupAutoCommitForProcessingTextArea() {
+
+        final int debounceMs = 400;
+        final Timer[] timerHolder = new Timer[1];
+
+        processingTextArea.getDocument().addDocumentListener(new DocumentListener() {
+            private void scheduleCommit() {
+                if (timerHolder[0] != null && timerHolder[0].isRunning()) {
+                    timerHolder[0].restart();
+                    return;
+                }
+                timerHolder[0] = new Timer(debounceMs, new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        if (selectedLineIndex >= 0 && selectedLineIndex < pathsList.size()) {
+                            String updatedText = processingTextArea.getText().trim();
+                            if (!updatedText.equals(pathsList.get(selectedLineIndex))) {
+                                pathsList.set(selectedLineIndex, updatedText);
+                                refreshPathsTextArea();
+                                rebuildModelsFromPaths();
+                            }
+                        }
+                        timerHolder[0].stop();
+                    }
+                });
+                timerHolder[0].setRepeats(false);
+                timerHolder[0].start();
+            }
+
+            @Override public void insertUpdate(DocumentEvent e) { scheduleCommit(); }
+            @Override public void removeUpdate(DocumentEvent e) { scheduleCommit(); }
+            @Override public void changedUpdate(DocumentEvent e) { scheduleCommit(); }
+        });
+
+        processingTextArea.addFocusListener(new FocusAdapter() {
+            @Override
+            public void focusLost(FocusEvent evt) {
+                if (selectedLineIndex >= 0 && selectedLineIndex < pathsList.size()) {
+                    String updatedText = processingTextArea.getText().trim();
+                    if (!updatedText.equals(pathsList.get(selectedLineIndex))) {
+                        pathsList.set(selectedLineIndex, updatedText);
+                        refreshPathsTextArea();
+                        rebuildModelsFromPaths();
+                    }
                 }
             }
         });
@@ -260,5 +307,26 @@ public class GUI {
 
             refreshPathsTextArea();
         });
+    }
+
+    private void rebuildModelsFromPaths() {
+
+        directories.clear();
+        mediaFiles.clear();
+
+        for (String path : pathsList) {
+            if (path == null || path.trim().isEmpty()) {
+                continue;
+            }
+            try {
+                directoryService.createDirectory(path);
+            } catch (Exception ex) {
+                System.out.println(ex.getMessage());
+            }
+            mediaFileService.createMediaFile(path);
+        }
+
+        mediaFiles = mediaFileService.getAllMediaFiles();
+        directories = directoryService.getAllDirectories();
     }
 }
