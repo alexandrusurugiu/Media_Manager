@@ -24,10 +24,6 @@ public class GUI {
 
     private final JFrame frame;
 
-    private final JButton loadButton;
-
-    private final JButton saveButton;
-
     private final JButton addButton;
 
     private final JButton deleteButton;
@@ -57,18 +53,6 @@ public class GUI {
         frame.setSize(1000, 800);
         frame.setLocationRelativeTo(null);
         frame.setLayout(new BorderLayout());
-
-        JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
-        topPanel.setPreferredSize(new Dimension(1000, 60));
-
-        loadButton = new JButton("Load");
-        loadButton.setPreferredSize(new Dimension(100, 35));
-        saveButton = new JButton("Save");
-        saveButton.setPreferredSize(new Dimension(100, 35));
-
-        topPanel.add(loadButton);
-        topPanel.add(saveButton);
-        frame.add(topPanel, BorderLayout.NORTH);
 
         pathsTextArea = new JTextArea();
         pathsTextArea.setEditable(false);
@@ -282,12 +266,19 @@ public class GUI {
 
     private void importDataFromTextFile() {
 
-        loadButton.addActionListener(click -> {
-            try {
-                List<String> paths = textFileService.loadFilesFromTextFile();
-                setPaths(paths);
-            } catch (IOException ex) {
-                throw new RuntimeException(ex.getMessage());
+        frame.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowOpened(WindowEvent e) {
+                try {
+                    List<String> importedPaths = textFileService.loadFilesFromTextFile();
+                    if (importedPaths != null && !importedPaths.isEmpty()) {
+                        pathsList.addAll(importedPaths);
+                        refreshPathsTextArea();
+                        rebuildModelsFromPaths();
+                    }
+                } catch (IOException ex) {
+                    throw new RuntimeException(ex.getMessage());
+                }
             }
         });
     }
