@@ -5,7 +5,7 @@ import exception.FilesSavingException;
 import java.io.IOException;
 import java.util.List;
 
-public interface TextFileService {
+public interface SourceService {
 
     /**
      * Loads all the file paths from the text file and returns them as a list of strings

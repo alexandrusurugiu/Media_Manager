@@ -6,7 +6,7 @@ import model.Directory;
 import model.MediaFile;
 import service.DirectoryService;
 import service.MediaFileService;
-import service.TextFileService;
+import service.SourceService;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -17,7 +17,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class TextFileServiceImpl implements TextFileService {
+public class SourceServiceImpl implements SourceService {
 
     private static final String PATHS_FILE = "src//resource/paths.txt";
 
@@ -27,7 +27,7 @@ public class TextFileServiceImpl implements TextFileService {
 
     private DirectoryService directoryService;
 
-    public TextFileServiceImpl(DirectoryService directoryService, MediaFileService mediaFileService) {
+    public SourceServiceImpl(DirectoryService directoryService, MediaFileService mediaFileService) {
         this.directoryService = directoryService;
         this.mediaFileService = mediaFileService;
         this.directories = directoryService.getAllDirectories();
