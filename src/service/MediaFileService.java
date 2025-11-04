@@ -1,5 +1,6 @@
 package service;
 
+import exception.AlreadyExistingFile;
 import model.MediaFile;
 
 import java.util.List;
@@ -13,14 +14,14 @@ public interface MediaFileService {
      *
      * @return a MediaFile object with the name, path, file type, and last modified date set if the path
      */
-    MediaFile createMediaFile(String path);
+    MediaFile createMediaFile(String path) throws AlreadyExistingFile;
 
     /**
      * Saves the specified media file in the memory
      *
      * @param mediaFile the media file to be saved; must not be null
      */
-    void saveMediaFile(MediaFile mediaFile);
+    void saveMediaFile(MediaFile mediaFile) throws AlreadyExistingFile;
 
     /**
      * Deletes the {@link model.MediaFile} object from the memory

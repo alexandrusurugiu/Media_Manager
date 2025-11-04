@@ -13,7 +13,7 @@ public class MediaFileServiceImpl implements MediaFileService {
     public final List<MediaFile> mediaFileList = new ArrayList<>();
 
     @Override
-    public MediaFile createMediaFile(String path) {
+    public MediaFile createMediaFile(String path) throws AlreadyExistingFile {
 
         MediaFile mediaFile = new MediaFile();
 
@@ -45,11 +45,11 @@ public class MediaFileServiceImpl implements MediaFileService {
     }
 
     @Override
-    public void saveMediaFile(MediaFile mediaFile) {
+    public void saveMediaFile(MediaFile mediaFile) throws AlreadyExistingFile {
 
         for (MediaFile currentMediaFile : mediaFileList) {
             if (mediaFile.getName().equals(currentMediaFile.getName()) && mediaFile.getFileType().equals(currentMediaFile.getFileType())) {
-                throw new AlreadyExistingFile("Fisierul " + mediaFile.getName() + " cu extensia " + mediaFile.getFileType() + " exista deja in path-ul " + mediaFile.getPath());
+                throw new AlreadyExistingFile("Fisierul " + mediaFile.getName().toUpperCase() + " cu extensia " + mediaFile.getFileType().toUpperCase() + " exista deja in path-ul " + mediaFile.getPath().toUpperCase());
             }
         }
 
