@@ -1,58 +1,80 @@
 package gui;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.event.*;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import javax.swing.*;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
+import javax.swing.JTextArea;
+import javax.swing.ScrollPaneConstants;
+import javax.swing.SwingUtilities;
+import javax.swing.Timer;
+import javax.swing.WindowConstants;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-
 import model.Directory;
 import model.MediaFile;
 import service.DirectoryService;
 import service.MediaFileService;
-import service.TextFileService;
+import service.SourceService;
+import service.StatisticService;
 import service.implementation.DirectoryServiceImpl;
 import service.implementation.MediaFileServiceImpl;
-import service.implementation.TextFileServiceImpl;
+import service.implementation.SourceServiceImpl;
+import service.implementation.StatisticServiceImpl;
 
 public class GUI {
 
-    private final JFrame frame;
+    private final JFrame mainFrame;
+    private final JFrame mediaFilesFrame;
+    private final JFrame directoriesFrame;
+    private final JFrame statsFrame;
 
     private final JButton addButton;
-
+    private final JButton filesButton;
+    private final JButton directoriesButton;
     private final JButton deleteButton;
+    private final JButton statsButton;
 
     private final JTextArea pathsTextArea;
-
     private final JTextArea processingTextArea;
+    private final JTextArea statsTextArea;
 
-    private MediaFileService mediaFileService = new MediaFileServiceImpl();
-
-    private DirectoryService directoryService = new DirectoryServiceImpl(mediaFileService);
-
-    private TextFileService textFileService = new TextFileServiceImpl(directoryService, mediaFileService);
+    private StatisticService statisticService = new StatisticServiceImpl();
+    private final MediaFileService mediaFileService = new MediaFileServiceImpl();
+    private final DirectoryService directoryService = new DirectoryServiceImpl(mediaFileService);
+    private final SourceService textFileService = new SourceServiceImpl(directoryService, mediaFileService);
 
     private List<String> pathsList = new ArrayList<>();
-
     List<MediaFile> mediaFiles = mediaFileService.getAllMediaFiles();
-
     List<Directory> directories = directoryService.getAllDirectories();
 
     private int selectedLineIndex = -1;
 
     public GUI() {
 
-        frame = new JFrame("Media Manager");
-        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        frame.setSize(1000, 800);
-        frame.setLocationRelativeTo(null);
-        frame.setLayout(new BorderLayout());
+        mainFrame = new JFrame("Media Manager");
+        mainFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        mainFrame.setSize(1000, 800);
+        mainFrame.setLocationRelativeTo(null);
+        mainFrame.setLayout(new BorderLayout());
 
         pathsTextArea = new JTextArea();
         pathsTextArea.setEditable(false);
@@ -65,33 +87,74 @@ public class GUI {
         JScrollPane leftScrollPane = new JScrollPane(pathsTextArea);
         JScrollPane rightScrollPane = new JScrollPane(processingTextArea);
 
+        JPanel topPanel = new JPanel(new BorderLayout());
+        topPanel.setPreferredSize(new Dimension(1000, 60));
+
+        JPanel topButtons = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
+        filesButton = new JButton("Files");
+        filesButton.setIcon(new ImageIcon("src/icon/filesIcon.png"));
+        filesButton.setPreferredSize(new Dimension(100, 30));
+        directoriesButton = new JButton("Folders");
+        directoriesButton.setIcon(new ImageIcon("src/icon/directoriesIcon.png"));
+        directoriesButton.setPreferredSize(new Dimension(100, 30));
+        statsButton = new JButton("Stats");
+        statsButton.setIcon(new ImageIcon("src/icon/statsIcon.png"));
+        statsButton.setPreferredSize(new Dimension(100, 30));
+        topButtons.add(filesButton);
+        topButtons.add(directoriesButton);
+        topButtons.add(statsButton);
+        topPanel.add(topButtons, BorderLayout.WEST);
+        topPanel.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 10, 10));
+        mainFrame.add(topPanel, BorderLayout.NORTH);
+
         JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
         splitPane.setLeftComponent(leftScrollPane);
         splitPane.setRightComponent(rightScrollPane);
         splitPane.setEnabled(false);
         splitPane.setDividerLocation(0.5);
         splitPane.setResizeWeight(0.5);
-
         splitPane.setPreferredSize(new Dimension(980, 650));
-
-        frame.add(splitPane, BorderLayout.CENTER);
+        mainFrame.add(splitPane, BorderLayout.CENTER);
 
         JPanel bottomPanel = new JPanel(new BorderLayout());
         bottomPanel.setPreferredSize(new Dimension(1000, 60));
 
-        JPanel rightButtons = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
+        JPanel bottomButtons = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
         addButton = new JButton("Add");
-        addButton.setPreferredSize(new Dimension(100, 35));
+        addButton.setPreferredSize(new Dimension(100, 30));
         deleteButton = new JButton("Delete");
-        deleteButton.setPreferredSize(new Dimension(100, 35));
-
-        rightButtons.add(addButton);
-        rightButtons.add(deleteButton);
-        bottomPanel.add(rightButtons, BorderLayout.EAST);
+        deleteButton.setPreferredSize(new Dimension(100, 30));
+        bottomButtons.add(addButton);
+        bottomButtons.add(deleteButton);
+        bottomPanel.add(bottomButtons, BorderLayout.EAST);
         bottomPanel.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 10, 10));
+        mainFrame.add(bottomPanel, BorderLayout.SOUTH);
 
-        frame.add(bottomPanel, BorderLayout.SOUTH);
-        frame.pack();
+        mainFrame.pack();
+
+        mediaFilesFrame = new JFrame("Media Files");
+        mediaFilesFrame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+        mediaFilesFrame.setSize(600, 400);
+        mediaFilesFrame.setLocationRelativeTo(null);
+        mediaFilesFrame.setLayout(new BorderLayout());
+
+        directoriesFrame = new JFrame("Folders");
+        directoriesFrame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+        directoriesFrame.setSize(600, 400);
+        directoriesFrame.setLocationRelativeTo(null);
+        directoriesFrame.setLayout(new BorderLayout());
+
+        statsFrame = new JFrame("Statistics");
+        statsFrame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+        statsFrame.setSize(400, 300);
+        statsFrame.setLocationRelativeTo(null);
+        statsFrame.setLayout(new BorderLayout());
+
+        statsTextArea = new JTextArea();
+        statsTextArea.setEditable(false);
+        statsTextArea.setLineWrap(true);
+        JScrollPane statsScrollPane = new JScrollPane(statsTextArea);
+        statsFrame.add(statsScrollPane, BorderLayout.CENTER);
 
         importDataFromTextFile();
         sendFileToEditingTab();
@@ -99,6 +162,113 @@ public class GUI {
         saveFilesToTextFileWhenExitingFrame();
         deleteFile();
         addFile();
+        openMediaFilesFrame();
+        openDirectoriesFrame();
+        openStatsFrameListener();
+        rebuildModelsFromPaths();
+    }
+
+    private void refreshMediaFilesFrameContent() {
+
+        mediaFilesFrame.getContentPane().removeAll();
+        mediaFilesFrame.revalidate();
+
+        rebuildModelsFromPaths();
+
+        JPanel mediaFilesPanel = new JPanel();
+        mediaFilesPanel.setLayout(new BoxLayout(mediaFilesPanel, BoxLayout.Y_AXIS));
+
+        if (mediaFiles != null) {
+            for (MediaFile mediaFile : mediaFiles) {
+                JLabel label = new JLabel(mediaFile.getName(), JLabel.CENTER);
+                setLabelIcon(mediaFile.getFileType(), label);
+                label.setAlignmentX(Component.LEFT_ALIGNMENT);
+                label.setIconTextGap(10);
+                mediaFilesPanel.add(label);
+                mediaFilesPanel.add(Box.createVerticalStrut(10));
+            }
+        }
+
+        JScrollPane mediaFilesScrollPane = new JScrollPane(mediaFilesPanel, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        mediaFilesScrollPane.setPreferredSize(new Dimension(400, 400));
+        mediaFilesFrame.add(mediaFilesScrollPane, BorderLayout.CENTER);
+
+        mediaFilesFrame.pack();
+    }
+
+    private void refreshDirectoriesFrameContent() {
+
+        directoriesFrame.getContentPane().removeAll();
+        directoriesFrame.revalidate();
+
+        rebuildModelsFromPaths();
+
+        JPanel directoriesPanel = new JPanel();
+        directoriesPanel.setLayout(new BoxLayout(directoriesPanel, BoxLayout.Y_AXIS));
+
+        if (directories != null) {
+            for (Directory directory : directories) {
+                JLabel label = new JLabel(directory.getName(), new ImageIcon("src/icon/folder.png"), JLabel.LEFT);
+                label.setAlignmentX(Component.LEFT_ALIGNMENT);
+                label.setIconTextGap(10);
+                directoriesPanel.add(label);
+                directoriesPanel.add(Box.createVerticalStrut(10));
+            }
+        }
+
+        JScrollPane directoriesScrollPane = new JScrollPane(directoriesPanel, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        directoriesScrollPane.setPreferredSize(new Dimension(400, 400));
+        directoriesFrame.add(directoriesScrollPane, BorderLayout.CENTER);
+
+        directoriesFrame.pack();
+    }
+
+
+    private void setLabelIcon(String extension, JLabel label) {
+        switch (extension) {
+            case "mp3" -> label.setIcon(new ImageIcon("src/icon/mp3Icon.png"));
+            case "wav" -> label.setIcon(new ImageIcon("src/icon/wavIcon.png"));
+            case "jpg", "jpeg" -> label.setIcon(new ImageIcon("src/icon/jpgIcon.png"));
+            case "png" -> label.setIcon(new ImageIcon("src/icon/pngIcon.png"));
+            case "mp4" -> label.setIcon(new ImageIcon("src/icon/mp4Icon.png"));
+            default -> label.setIcon(new ImageIcon("src/icon/filesIcon.png"));
+        }
+    }
+
+    private void openDirectoriesFrame() {
+
+        directoriesButton.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                refreshDirectoriesFrameContent();
+                directoriesFrame.setVisible(true);
+                directoriesFrame.toFront();
+            }
+        });
+    }
+
+    private void openMediaFilesFrame() {
+
+        filesButton.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                refreshMediaFilesFrameContent();
+                mediaFilesFrame.setVisible(true);
+                mediaFilesFrame.toFront();
+            }
+        });
+    }
+
+    private void openStatsFrameListener() {
+        statsButton.addActionListener(e -> {
+            updateStatisticsDisplay();
+            statsFrame.setVisible(true);
+            statsFrame.toFront();
+        });
+    }
+
+    private void updateStatisticsDisplay() {
+        statsTextArea.setText(statisticService.getStatisticsReport());
     }
 
     private void addFile() {
@@ -110,6 +280,7 @@ public class GUI {
                     String pathToBeAdded = processingTextArea.getText().trim();
                     if (!pathToBeAdded.isEmpty()) {
                         pathsList.add(pathToBeAdded);
+                        analyzePathToBeAdded(pathToBeAdded);
                         refreshPathsTextArea();
                         rebuildModelsFromPaths();
                     }
@@ -121,12 +292,51 @@ public class GUI {
         });
     }
 
+    private void analyzePathToBeAdded(String path) {
+
+        if (path == null || path.trim().isEmpty()) {
+            return;
+        }
+
+        String[] components = path.split("/");
+        for (String component : components) {
+            if (component.isEmpty()) {
+                continue;
+            }
+
+            if (mediaFileService.isMediaFile(component)) {
+                boolean found = false;
+                for (MediaFile mediaFile : mediaFiles) {
+                    if (mediaFile.getName().equals(component)) {
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
+                    statisticService.incrementMediaFilesCreated();
+                }
+            } else {
+                boolean found = false;
+                for (Directory directory : directories) {
+                    if (directory.getName().equals(component)) {
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
+                    statisticService.incrementDirectoriesCreated();
+                }
+            }
+        }
+    }
+
     private void deleteFile() {
 
         deleteButton.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
                 if (selectedLineIndex >= 0 && selectedLineIndex < pathsList.size()) {
+                    analyzePathToBeDeleted(pathsList.get(selectedLineIndex));
                     pathsList.remove(selectedLineIndex);
                     selectedLineIndex = -1;
                     processingTextArea.setText("");
@@ -135,6 +345,10 @@ public class GUI {
                 }
             }
         });
+    }
+
+    private void analyzePathToBeDeleted(String path) {
+
     }
 
     private void updateSelectedPath() {
@@ -167,7 +381,7 @@ public class GUI {
 
     private void saveFilesToTextFileWhenExitingFrame() {
 
-        frame.addWindowListener(new WindowAdapter() {
+        mainFrame.addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent windowEvent) {
                 try {
@@ -185,10 +399,9 @@ public class GUI {
             @Override
             public void mouseClicked(MouseEvent e) {
                 JTextArea textArea = (JTextArea) e.getSource();
-                int offset = textArea.viewToModel(e.getPoint());
+                int offset = textArea.viewToModel2D(e.getPoint());
                 try {
                     int totalLength = textArea.getText().length();
-                    // clicked after text content -> unselect
                     if (offset >= totalLength) {
                         selectedLineIndex = -1;
                         processingTextArea.setText("");
@@ -208,8 +421,8 @@ public class GUI {
                     processingTextArea.setText(lineText);
                     selectedLineIndex = line;
                 } catch (Exception ex) {
-                    ex.printStackTrace();
                     selectedLineIndex = -1;
+                    throw new RuntimeException(ex.getMessage());
                 }
             }
         });
@@ -226,27 +439,32 @@ public class GUI {
                     timerHolder[0].restart();
                     return;
                 }
-                timerHolder[0] = new Timer(debounceMs, new ActionListener() {
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        if (selectedLineIndex >= 0 && selectedLineIndex < pathsList.size()) {
-                            String updatedText = processingTextArea.getText().trim();
-                            if (!updatedText.equals(pathsList.get(selectedLineIndex))) {
-                                pathsList.set(selectedLineIndex, updatedText);
-                                refreshPathsTextArea();
-                                rebuildModelsFromPaths();
-                            }
+                timerHolder[0] = new Timer(debounceMs, e -> {
+                    if (selectedLineIndex >= 0 && selectedLineIndex < pathsList.size()) {
+                        String updatedText = processingTextArea.getText().trim();
+                        if (!updatedText.equals(pathsList.get(selectedLineIndex))) {
+                            pathsList.set(selectedLineIndex, updatedText);
+                            refreshPathsTextArea();
+                            rebuildModelsFromPaths();
                         }
-                        timerHolder[0].stop();
                     }
+                    timerHolder[0].stop();
                 });
                 timerHolder[0].setRepeats(false);
                 timerHolder[0].start();
             }
 
-            @Override public void insertUpdate(DocumentEvent e) { scheduleCommit(); }
-            @Override public void removeUpdate(DocumentEvent e) { scheduleCommit(); }
-            @Override public void changedUpdate(DocumentEvent e) { scheduleCommit(); }
+            @Override public void insertUpdate(DocumentEvent e) {
+                scheduleCommit();
+            }
+
+            @Override public void removeUpdate(DocumentEvent e) {
+                scheduleCommit();
+            }
+
+            @Override public void changedUpdate(DocumentEvent e) {
+                scheduleCommit();
+            }
         });
 
         processingTextArea.addFocusListener(new FocusAdapter() {
@@ -266,7 +484,7 @@ public class GUI {
 
     private void importDataFromTextFile() {
 
-        frame.addWindowListener(new WindowAdapter() {
+        mainFrame.addWindowListener(new WindowAdapter() {
             @Override
             public void windowOpened(WindowEvent e) {
                 try {
@@ -285,25 +503,15 @@ public class GUI {
 
     public void show() {
 
-        SwingUtilities.invokeLater(() -> frame.setVisible(true));
-    }
-
-    public void setPaths(List<String> paths) {
-
-        SwingUtilities.invokeLater(() -> {
-            pathsList.clear();
-            if (paths != null && !paths.isEmpty()) {
-                pathsList.addAll(paths);
-            }
-
-            refreshPathsTextArea();
-        });
+        SwingUtilities.invokeLater(() -> mainFrame.setVisible(true));
     }
 
     private void rebuildModelsFromPaths() {
 
-        directories.clear();
-        mediaFiles.clear();
+        if ((mediaFiles != null) && (directories != null)) {
+            new ArrayList<>(mediaFiles).forEach(mediaFileService::deleteMediaFile);
+            new ArrayList<>(directories).forEach(directoryService::deleteDirectory);
+        }
 
         for (String path : pathsList) {
             if (path == null || path.trim().isEmpty()) {
@@ -312,12 +520,14 @@ public class GUI {
             try {
                 directoryService.createDirectory(path);
             } catch (Exception ex) {
-                System.out.println(ex.getMessage());
+                throw new RuntimeException(ex.getMessage());
             }
             mediaFileService.createMediaFile(path);
         }
 
         mediaFiles = mediaFileService.getAllMediaFiles();
         directories = directoryService.getAllDirectories();
+        statisticService.setTotalMediaFiles(mediaFiles.size());
+        statisticService.setTotalDirectories(directories.size());
     }
 }
