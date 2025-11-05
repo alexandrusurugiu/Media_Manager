@@ -1,0 +1,15 @@
+--- Statistici pentru fisiere media si foldere ---
+
+Fisiere media create: 0
+Fisiere media sterse: 0
+Foldere create: 0
+Foldere sterse: 0
+Total fisiere media: 6
+Total foldere: 19
+
+--- Fisiere media dupa tip ---
+mp3: 2
+jpg: 2
+jpeg: 1
+mp4: 1
+other: 0
