@@ -299,30 +299,48 @@ public class GUI {
         }
 
         String[] components = path.split("/");
+        StringBuilder sbPath = new StringBuilder();
+        StringBuilder sbFile = new StringBuilder();
+
+        for (int i = 0; i < components.length - 1; i++) {
+            sbFile.append(components[i]).append('/');
+        }
+
+
         for (String component : components) {
             if (component.isEmpty()) {
                 continue;
             }
 
+            sbPath.append(component);
+
             if (mediaFileService.isMediaFile(component)) {
+                String fileName = mediaFileService.getFileNameWithoutExtension(component);
+                String fileType = mediaFileService.getFileExtension(component);
                 boolean found = false;
+
                 for (MediaFile mediaFile : mediaFiles) {
-                    if (mediaFile.getName().equals(component)) {
+                    if (mediaFile.getName().equals(fileName) && mediaFile.getPath().contentEquals(sbFile)) {
                         found = true;
                         break;
                     }
                 }
+
                 if (!found) {
                     statisticService.incrementMediaFilesCreated();
+                    statisticService.incrementMediaFileTypeCount(fileType);
                 }
             } else {
+                sbPath.append("/");
                 boolean found = false;
+
                 for (Directory directory : directories) {
-                    if (directory.getName().equals(component)) {
+                    if (directory.getName().equals(component) && directory.getPath().contentEquals(sbPath)) {
                         found = true;
                         break;
                     }
                 }
+
                 if (!found) {
                     statisticService.incrementDirectoriesCreated();
                 }
@@ -349,6 +367,62 @@ public class GUI {
 
     private void analyzePathToBeDeleted(String path) {
 
+        if (path.trim().isEmpty()) {
+            return;
+        }
+
+        String[] components = path.split("/");
+        StringBuilder sbPath = new StringBuilder();
+        StringBuilder sbFile = new StringBuilder();
+
+        for (int i = 0; i < components.length - 1; i++) {
+            sbFile.append(components[i]).append('/');
+        }
+
+
+        for (String component : components) {
+            if (component.isEmpty()) {
+                continue;
+            }
+
+            sbPath.append(component);
+
+            if (mediaFileService.isMediaFile(component)) {
+                String fileName = mediaFileService.getFileNameWithoutExtension(component);
+                String fileType = mediaFileService.getFileExtension(component);
+                boolean found = false;
+
+                for (MediaFile mediaFile : mediaFiles) {
+                    if (mediaFile.getName().equals(fileName) && mediaFile.getPath().contentEquals(sbFile)) {
+                        found = true;
+                        break;
+                    }
+                }
+
+                if (found) {
+                    statisticService.incrementMediaFilesDeleted();
+                    statisticService.decrementMediaFileTypeCount(fileType);
+                }
+            } else {
+                sbPath.append("/");
+                boolean found = false;
+
+                for (Directory directory : directories) {
+                    if (directory.getName().equals(component) && directory.getPath().contentEquals(sbPath)) {
+                        if (directory.getName().length() <= 2) {
+                            continue;
+                        }
+
+                        found = true;
+                        break;
+                    }
+                }
+
+                if (found) {
+                    statisticService.incrementDirectoriesDeleted();
+                }
+            }
+        }
     }
 
     private void updateSelectedPath() {
@@ -386,6 +460,7 @@ public class GUI {
             public void windowClosing(WindowEvent windowEvent) {
                 try {
                     textFileService.saveFilesToTextFile(pathsList);
+                    statisticService.saveStatisticsToTextFile();
                 } catch (IOException ex) {
                     throw new RuntimeException(ex.getMessage());
                 }
@@ -513,6 +588,8 @@ public class GUI {
             new ArrayList<>(directories).forEach(directoryService::deleteDirectory);
         }
 
+        statisticService.getStatistic().resetMediaFileTypeCounts();
+
         for (String path : pathsList) {
             if (path == null || path.trim().isEmpty()) {
                 continue;
@@ -523,6 +600,11 @@ public class GUI {
                 throw new RuntimeException(ex.getMessage());
             }
             mediaFileService.createMediaFile(path);
+
+            if (mediaFileService.isMediaFile(path)) {
+                String fileType = mediaFileService.getFileExtension(path);
+                statisticService.incrementMediaFileTypeCount(fileType);
+            }
         }
 
         mediaFiles = mediaFileService.getAllMediaFiles();
