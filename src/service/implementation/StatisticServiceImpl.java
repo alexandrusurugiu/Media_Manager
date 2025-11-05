@@ -1,5 +1,8 @@
 package service.implementation;
 
+import exception.StatisticsSavingException;
+import java.io.FileWriter;
+import java.io.IOException;
 import model.Statistic;
 import service.StatisticService;
 
@@ -7,13 +10,10 @@ public class StatisticServiceImpl implements StatisticService {
 
     private final Statistic statistic;
 
+    private final static String STATISTICS_FILE = "src//resource/statistics.txt";
+
     public StatisticServiceImpl() {
         this.statistic = new Statistic();
-    }
-
-    @Override
-    public Statistic getStatistics() {
-        return statistic;
     }
 
     @Override
@@ -73,5 +73,32 @@ public class StatisticServiceImpl implements StatisticService {
         }
 
         return sb.toString();
+    }
+
+    @Override
+    public void incrementMediaFileTypeCount(String fileType) {
+        statistic.incrementMediaFileTypeCount(fileType);
+    }
+
+    @Override
+    public void decrementMediaFileTypeCount(String fileType) {
+        statistic.decrementMediaFileTypeCount(fileType);
+    }
+
+    @Override
+    public Statistic getStatistic() {
+        return statistic;
+    }
+
+    @Override
+    public void saveStatisticsToTextFile() throws StatisticsSavingException {
+        String report = this.getStatisticsReport();
+
+        try (FileWriter fileWriter = new FileWriter(STATISTICS_FILE, false)) {
+                fileWriter.write(report);
+        } catch (IOException e) {
+            throw new StatisticsSavingException("Nu s-au putut salva statisticile in fisierul text!");
+        }
+
     }
 }

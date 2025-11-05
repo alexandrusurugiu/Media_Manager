@@ -1,10 +1,9 @@
 package service;
 
+import exception.StatisticsSavingException;
 import model.Statistic;
 
 public interface StatisticService {
-
-    Statistic getStatistics();
 
     /**
      * Increments the count of media files created by one.
@@ -42,4 +41,27 @@ public interface StatisticService {
      * @return A string containing all statistics.
      */
     String getStatisticsReport();
+
+    /**
+     * Increments the count of media files for a specific file type.
+     *
+     * @param fileType The type of media file to increment the count for.
+     */
+    void incrementMediaFileTypeCount(String fileType);
+
+    /**
+     * Decrements the count of media files for a specific file type.
+     *
+     * @param fileType The type of media file to decrement the count for.
+     */
+    void decrementMediaFileTypeCount(String fileType);
+
+    /**
+     * Resets all media file type counts to zero.
+     *
+     * @return The Statistic object containing all current statistics.
+     */
+    Statistic getStatistic();
+
+    void saveStatisticsToTextFile() throws StatisticsSavingException;
 }

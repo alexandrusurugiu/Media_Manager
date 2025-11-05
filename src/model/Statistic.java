@@ -37,33 +37,16 @@ public class Statistic implements Serializable {
         return aggregateCounts;
     }
 
-    public void setAggregateCounts(long[] aggregateCounts) {
-        this.aggregateCounts = aggregateCounts;
-    }
-
     public int[][] getMediaFileTypeMatrix() {
         return mediaFileTypeMatrix;
-    }
-
-    public void setMediaFileTypeMatrix(int[][] mediaFileTypeMatrix) {
-        this.mediaFileTypeMatrix = mediaFileTypeMatrix;
     }
 
     public Map<String, Integer> getMediaTypeToIndexMap() {
         return mediaTypeToIndexMap;
     }
 
-    public void setMediaTypeToIndexMap(Map<String, Integer> mediaTypeToIndexMap) {
-        this.mediaTypeToIndexMap = mediaTypeToIndexMap;
-    }
-
     public String[] getPredefinedMediaTypes() {
         return predefinedMediaTypes;
-    }
-
-    public void setPredefinedMediaTypes(String[] predefinedMediaTypes) {
-        this.predefinedMediaTypes = predefinedMediaTypes;
-        initializeMediaTypeMap();
     }
 
     public long getMediaFilesCreatedCount() {
@@ -98,11 +81,38 @@ public class Statistic implements Serializable {
         this.aggregateCounts[5] = totalDirectories;
     }
 
-    public int getMediaFileTypeCount(String type) {
-        Integer index = mediaTypeToIndexMap.get(type.toLowerCase());
-        if (index != null && index < predefinedMediaTypes.length) {
-            return mediaFileTypeMatrix[index][0];
+    public void incrementMediaFileTypeCount(String fileType) {
+
+        Integer index = mediaTypeToIndexMap.get(fileType.toLowerCase());
+
+        if (index != null && index < mediaFileTypeMatrix.length) {
+            mediaFileTypeMatrix[index][0]++;
+        } else {
+            mediaFileTypeMatrix[mediaTypeToIndexMap.get("other")][0]++;
         }
-        return 0;
+    }
+
+    public void decrementMediaFileTypeCount(String fileType) {
+
+        Integer index = mediaTypeToIndexMap.get(fileType.toLowerCase());
+
+        if (index != null && index < mediaFileTypeMatrix.length) {
+            mediaFileTypeMatrix[index][0]--;
+
+            if (mediaFileTypeMatrix[index][0] < 0) {
+                mediaFileTypeMatrix[index][0] = 0;
+            }
+        } else {
+            mediaFileTypeMatrix[mediaTypeToIndexMap.get("other")][0]--;
+
+            if (mediaFileTypeMatrix[mediaTypeToIndexMap.get("other")][0] < 0) {
+                mediaFileTypeMatrix[mediaTypeToIndexMap.get("other")][0] = 0;
+            }
+        }
+    }
+
+    public void resetMediaFileTypeCounts() {
+
+        this.mediaFileTypeMatrix = new int[predefinedMediaTypes.length][1];
     }
 }
