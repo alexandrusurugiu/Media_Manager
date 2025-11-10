@@ -13,20 +13,7 @@ import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JSplitPane;
-import javax.swing.JTextArea;
-import javax.swing.ScrollPaneConstants;
-import javax.swing.SwingUtilities;
-import javax.swing.Timer;
-import javax.swing.WindowConstants;
+import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import model.Directory;
@@ -462,7 +449,7 @@ public class GUI {
                     textFileService.saveFilesToTextFile(pathsList);
                     statisticService.saveStatisticsToTextFile();
                 } catch (IOException ex) {
-                    throw new RuntimeException(ex.getMessage());
+                    JOptionPane.showMessageDialog(mainFrame,"Eroare la salvarea datelor: " + ex.getMessage(),"Eroare", JOptionPane.ERROR_MESSAGE);
                 }
             }
         });
@@ -497,7 +484,7 @@ public class GUI {
                     selectedLineIndex = line;
                 } catch (Exception ex) {
                     selectedLineIndex = -1;
-                    throw new RuntimeException(ex.getMessage());
+                    JOptionPane.showMessageDialog(mainFrame, "Eroare la selectarea liniei: " + ex.getMessage(), "Eroare", JOptionPane.ERROR_MESSAGE);
                 }
             }
         });
@@ -564,13 +551,14 @@ public class GUI {
             public void windowOpened(WindowEvent e) {
                 try {
                     List<String> importedPaths = textFileService.loadFilesFromTextFile();
+
                     if (importedPaths != null && !importedPaths.isEmpty()) {
                         pathsList.addAll(importedPaths);
                         refreshPathsTextArea();
                         rebuildModelsFromPaths();
                     }
                 } catch (IOException ex) {
-                    throw new RuntimeException(ex.getMessage());
+                    JOptionPane.showMessageDialog(mainFrame,"Eroare la incarcarea datelor: " + ex.getMessage(),"Eroare", JOptionPane.ERROR_MESSAGE);
                 }
             }
         });
@@ -589,6 +577,7 @@ public class GUI {
         }
 
         statisticService.getStatistic().resetMediaFileTypeCounts();
+        List<String> pathsToRemove = new ArrayList<>();
 
         for (String path : pathsList) {
             if (path == null || path.trim().isEmpty()) {
@@ -596,15 +585,26 @@ public class GUI {
             }
             try {
                 directoryService.createDirectory(path);
-            } catch (Exception ex) {
-                throw new RuntimeException(ex.getMessage());
+                mediaFileService.createMediaFile(path);
+            } catch (IOException ex) {
+                JOptionPane.showMessageDialog(mainFrame, "Eroare la crearea directorului: " + ex.getMessage(), "Eroare", JOptionPane.ERROR_MESSAGE);
+                pathsToRemove.add(path);
+                continue;
+            } catch (RuntimeException ex) {
+                JOptionPane.showMessageDialog(mainFrame, "Eroare la crearea fisierului: " + ex.getMessage(), "Eroare", JOptionPane.ERROR_MESSAGE);
+                pathsToRemove.add(path);
+                continue;
             }
-            mediaFileService.createMediaFile(path);
 
             if (mediaFileService.isMediaFile(path)) {
                 String fileType = mediaFileService.getFileExtension(path);
                 statisticService.incrementMediaFileTypeCount(fileType);
             }
+        }
+
+        if (!pathsToRemove.isEmpty()) {
+            pathsList.removeLast();
+            refreshPathsTextArea();
         }
 
         mediaFiles = mediaFileService.getAllMediaFiles();
