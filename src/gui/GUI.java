@@ -436,6 +436,8 @@ public class GUI {
                 }
             }
             pathsTextArea.setText(sb.toString());
+
+            mediaFiles.forEach(System.out::println);
         });
     }
 
