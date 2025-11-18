@@ -40,6 +40,7 @@ public class DirectoryServiceImpl implements DirectoryService {
                 break;
             }
 
+            String parentPathForNewDir = currentPath.toString();
             currentPath.append(component).append("/");
             String dirPath = currentPath.toString();
 
@@ -54,7 +55,7 @@ public class DirectoryServiceImpl implements DirectoryService {
             } else {
                 Directory newDirectory = new Directory();
                 newDirectory.setName(component);
-                newDirectory.setPath(dirPath);
+                newDirectory.setPath(parentPathForNewDir);
                 saveDirectory(newDirectory);
 
                 if (parent != null) {
