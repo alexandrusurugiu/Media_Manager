@@ -167,7 +167,7 @@ public class GUI {
 
         if (mediaFiles != null) {
             for (MediaFile mediaFile : mediaFiles) {
-                JLabel label = new JLabel(mediaFile.getName(), JLabel.CENTER);
+                JLabel label = new JLabel(mediaFile.getName() + '.' + mediaFile.getFileType() + " (" + mediaFile.getPath() + ')', JLabel.CENTER);
                 setLabelIcon(mediaFile.getFileType(), label);
                 label.setAlignmentX(Component.LEFT_ALIGNMENT);
                 label.setIconTextGap(10);
@@ -195,7 +195,7 @@ public class GUI {
 
         if (directories != null) {
             for (Directory directory : directories) {
-                JLabel label = new JLabel(directory.getName(), new ImageIcon("src/icon/folder.png"), JLabel.LEFT);
+                JLabel label = new JLabel(directory.getName() + " (" + directory.getPath() + ')', new ImageIcon("src/icon/folder.png"), JLabel.LEFT);
                 label.setAlignmentX(Component.LEFT_ALIGNMENT);
                 label.setIconTextGap(10);
                 directoriesPanel.add(label);
