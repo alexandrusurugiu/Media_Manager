@@ -354,7 +354,7 @@ public class GUI {
 
     private void analyzePathToBeDeleted(String path) {
 
-        if (path.trim().isEmpty()) {
+        if (path == null || path.trim().isEmpty()) {
             return;
         }
 
@@ -366,12 +366,12 @@ public class GUI {
             sbFile.append(components[i]).append('/');
         }
 
-
         for (String component : components) {
             if (component.isEmpty()) {
                 continue;
             }
 
+            String parentPathForComparison = sbPath.toString();
             sbPath.append(component);
 
             if (mediaFileService.isMediaFile(component)) {
@@ -391,15 +391,10 @@ public class GUI {
                     statisticService.decrementMediaFileTypeCount(fileType);
                 }
             } else {
-                sbPath.append("/");
                 boolean found = false;
 
                 for (Directory directory : directories) {
-                    if (directory.getName().equals(component) && directory.getPath().contentEquals(sbPath)) {
-                        if (directory.getName().length() <= 2) {
-                            continue;
-                        }
-
+                    if (directory.getName().equals(component) && directory.getPath().equals(parentPathForComparison)) {
                         found = true;
                         break;
                     }
@@ -408,6 +403,8 @@ public class GUI {
                 if (found) {
                     statisticService.incrementDirectoriesDeleted();
                 }
+
+                sbPath.append("/");
             }
         }
     }
