@@ -323,12 +323,13 @@ public class GUI {
 
                 for (Directory directory : directories) {
                     if (directory.getName().equals(component) && directory.getPath().contentEquals(sbPath)) {
+
                         found = true;
                         break;
                     }
                 }
 
-                if (!found) {
+                if (!found && component.length() > 2) {
                     statisticService.incrementDirectoriesCreated();
                 }
             }
@@ -395,6 +396,10 @@ public class GUI {
 
                 for (Directory directory : directories) {
                     if (directory.getName().equals(component) && directory.getPath().equals(parentPathForComparison)) {
+                        if (directory.getName().length() <= 2) {
+                            continue;
+                        }
+
                         found = true;
                         break;
                     }
